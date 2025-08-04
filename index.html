@@ -6,6 +6,7 @@
     <title>Pendaftaran Ashanf 550 Titik</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Poppins:wght%40600;700&display=swap" rel="stylesheet">
 </head>
@@ -72,17 +73,19 @@
             </div>
 
             <button type="submit" class="submit-button">Daftar Sekarang</button>
+            <p id="loadingMessage" style="display: none; color: #007bff; font-weight: bold; margin-top: 10px;">
+                <i class="fas fa-spinner fa-spin"></i> Data sedang diproses, silakan tunggu...
+            </p>
         </form>
     </div>
 
-    <div id="successPopup" class="popup">
+    <div id="successPopup" class="popup-overlay">
         <div class="popup-content">
-            <span class="close-button">&times;</span>
-            <i class="fas fa-check-circle success-icon"></i>
-            <h2>Pendaftaran Berhasil!</h2>
-            <p>Terima kasih, pendaftaran Anda telah berhasil diproses.</p>
-            <p>Admin akan segera menghubungi Anda melalui WhatsApp.</p>
-            <button type="button" class="ok-button">OK</button>
+        <span class="close-button">&times;</span>
+        <h2 id="popupTitle"></h2> <p id="popupMessage"></p> <button id="whatsappAdminButton" class="whatsapp-button" style="display: none;">
+            <i class="fab fa-whatsapp"></i> Silakan Klik untuk Konfirmasi ke Admin
+        </button>
+        <button id="okPopupButton" class="ok-button">OK</button>
         </div>
     </div>
 
