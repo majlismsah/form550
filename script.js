@@ -30,7 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
         GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM', // ID Google Spreadsheet Anda
         GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m', // ID Folder Google Drive Anda untuk Foto
         // GANTI URL INI SETELAH ANDA DEPLOY GOOGLE APPS SCRIPT
-        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec' 
+        // URL INI SUDAH TERISI DENGAN URL YANG ANDA BERIKAN SEBELUMNYA.
+        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec' //
     };
     // --- AKHIR KONFIGURASI ---
 
@@ -247,9 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- INTEGRASI KE GOOGLE APPS SCRIPT (Web App) ---
         const GOOGLE_APPS_SCRIPT_WEB_APP_URL = CONFIG.GOOGLE_APPS_SCRIPT_WEB_APP_URL; 
 
-        // Validasi URL Apps Script
-        if (GOOGLE_APPS_SCRIPT_WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec' || !GOOGLE_APPS_SCRIPT_WEB_APP_URL) {
-            alert('Error Konfigurasi: URL Google Apps Script Web App belum diatur di script.js. Mohon periksa kembali.');
+        // Validasi URL Apps Script - PERBAIKAN DI SINI
+        // Memastikan URL tidak kosong atau masih placeholder awal
+        if (!GOOGLE_APPS_SCRIPT_WEB_APP_URL || GOOGLE_APPS_SCRIPT_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+            alert('Error Konfigurasi: URL Google Apps Script Web App belum diatur atau masih placeholder di script.js. Mohon periksa kembali.');
+            console.error('URL Apps Script tidak valid:', GOOGLE_APPS_SCRIPT_WEB_APP_URL);
             submitButton.disabled = false;
             submitButton.textContent = 'Daftar Sekarang';
             return;
@@ -271,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sendWhatsappNotification(namaLengkap, namaSulthon, noWhatsapp, majlisWilayah);
             } else {
                 alert('Pendaftaran gagal: ' + (result.message || 'Terjadi kesalahan tidak dikenal.'));
+                console.error('Apps Script ERROR:', result.message);
             }
         } catch (error) {
             console.error('Error saat submit formulir:', error);
