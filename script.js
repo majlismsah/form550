@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM', // ID Google Spreadsheet Anda
         GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m', // ID Folder Google Drive Anda untuk Foto
         // GANTI URL INI SETELAH ANDA DEPLOY GOOGLE APPS SCRIPT
-        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' 
+        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec' 
     };
     // --- AKHIR KONFIGURASI ---
 
