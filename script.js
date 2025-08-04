@@ -23,13 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let cropper; // Variabel untuk menyimpan instance Cropper.js
     let croppedBlob = null; // Menyimpan blob (data biner) foto yang sudah di-crop
 
-    // --- PENTING: KONFIGURASI APLIKASI --
+    // --- PENTING: KONFIGURASI APLIKASI ---
     const CONFIG = {
         ADMIN_WHATSAPP_NUMBER: '6285213347126', // Nomor WhatsApp Admin Anda
         GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM', // ID Google Spreadsheet Anda
         GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m', // ID Folder Google Drive Anda untuk Foto
-        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec' //
-        };
+        // Pastikan URL ini sudah diganti dengan URL Web App Anda yang sebenarnya
+        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec'
+    };
     // --- AKHIR KONFIGURASI ---
 
 
@@ -57,8 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fungsi untuk mereset seluruh area upload foto ke kondisi awal
     function resetImageUploadArea() {
+        console.log('resetImageUploadArea dipanggil'); // Log untuk debugging
         if (cropper) {
             cropper.destroy(); // Hancurkan instance cropper jika masih ada
+            console.log('Cropper instance dihancurkan.');
         }
         imageCropperContainer.style.display = 'none'; // Sembunyikan container cropper
         
@@ -70,16 +73,21 @@ document.addEventListener('DOMContentLoaded', () => {
         imageUploadArea.style.display = 'flex'; // Tampilkan kembali area upload (drag & drop)
         imageUploadArea.classList.remove('dragover'); // Hapus class dragover jika ada
         fotoCoverInput.value = ''; // Reset input file asli
+        console.log('Area upload foto direset ke kondisi awal.');
     }
 
 
     // === Fungsionalitas Upload dan Crop Foto (termasuk Drag & Drop) ===
 
     // Memicu klik pada input file tersembunyi ketika area upload diklik
-    imageUploadArea.addEventListener('click', () => {
-        // Hanya picu klik jika area upload sedang ditampilkan
+    imageUploadArea.addEventListener('click', (e) => {
+        // Tambahkan log untuk debugging event listener
+        console.log('imageUploadArea diklik.');
         if (imageUploadArea.style.display !== 'none') {
+            console.log('Memicu klik pada fotoCoverInput.');
             fotoCoverInput.click(); // Memicu klik pada input file yang tersembunyi
+        } else {
+            console.log('imageUploadArea tidak ditampilkan, klik tidak dipicu.');
         }
     });
 
@@ -94,12 +102,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Menangani efek visual saat file diseret ke area drag-and-drop
-    imageUploadArea.addEventListener('dragenter', () => imageUploadArea.classList.add('dragover'), false);
-    imageUploadArea.addEventListener('dragleave', () => imageUploadArea.classList.remove('dragover'), false);
-    imageUploadArea.addEventListener('dragover', () => imageUploadArea.classList.add('dragover'), false);
+    imageUploadArea.addEventListener('dragenter', () => {
+        imageUploadArea.classList.add('dragover');
+        console.log('Drag Enter');
+    }, false);
+    imageUploadArea.addEventListener('dragleave', () => {
+        imageUploadArea.classList.remove('dragover');
+        console.log('Drag Leave');
+    }, false);
+    imageUploadArea.addEventListener('dragover', () => {
+        imageUploadArea.classList.add('dragover');
+        console.log('Drag Over');
+    }, false);
 
     // Menangani file yang dilepaskan di area drag-and-drop
     imageUploadArea.addEventListener('drop', (e) => {
+        console.log('File didrop.');
         imageUploadArea.classList.remove('dragover');
         const dt = e.dataTransfer;
         const files = dt.files;
@@ -108,18 +126,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Menangani file yang dipilih melalui input standar (klik "Pilih File")
     fotoCoverInput.addEventListener('change', (e) => {
+        console.log('File dipilih melalui input standar.');
         handleFiles(e.target.files);
     });
 
     // Fungsi utama untuk memproses file gambar yang dipilih/di-drop
     function handleFiles(files) {
+        if (files.length === 0) {
+            console.warn('Tidak ada file yang dipilih.');
+            return;
+        }
         const file = files[0];
+        console.log('File yang dipilih:', file.name, file.type, file.size);
         // Pastikan file adalah gambar JPEG atau PNG
         if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
             const reader = new FileReader();
             reader.onload = (event) => {
+                console.log('FileReader selesai membaca file.');
                 if (cropper) {
                     cropper.destroy(); // Hancurkan instance cropper sebelumnya jika ada
+                    console.log('Cropper lama dihancurkan sebelum inisialisasi baru.');
                 }
                 
                 imageToCrop.src = event.target.result; // Set sumber gambar untuk Cropper
@@ -127,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 croppedImagePreview.style.display = 'none'; // Sembunyikan preview hasil crop
                 changePhotoButton.style.display = 'none'; // Sembunyikan tombol "Ubah Foto"
                 imageCropperContainer.style.display = 'block'; // Tampilkan container cropper
+                console.log('Container cropper ditampilkan.');
 
                 // Inisialisasi Cropper.js dengan rasio aspek 4:6
                 cropper = new Cropper(imageToCrop, {
@@ -135,17 +162,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     autoCropArea: 0.8, // Area crop awal (80% dari gambar)
                     responsive: true, // Responsif terhadap ukuran container
                     background: false, // Sembunyikan latar belakang grid Cropper
+                    ready() {
+                        console.log('Cropper is ready.'); // Log ketika cropper siap
+                    },
+                    error(err) {
+                        console.error('Cropper error:', err); // Log jika ada error di cropper
+                    }
                 });
             };
+            reader.onerror = (error) => {
+                console.error('FileReader error:', error);
+                alert('Gagal membaca file gambar.');
+            };
             reader.readAsDataURL(file); // Baca file sebagai Data URL
-        } else if (file) {
+        } else {
             alert('Jenis file tidak didukung. Mohon unggah gambar JPEG atau PNG.');
             fotoCoverInput.value = ''; // Reset input file jika jenisnya salah
+            console.warn('Jenis file tidak didukung:', file ? file.type : 'No file');
         }
     }
 
     // Event listener untuk tombol "Potong Foto"
     cropButton.addEventListener('click', () => {
+        console.log('Tombol Potong Foto diklik.');
         if (cropper) {
             // Dapatkan canvas dari gambar yang dipotong dengan ukuran target
             const croppedCanvas = cropper.getCroppedCanvas({
@@ -160,18 +199,25 @@ document.addEventListener('DOMContentLoaded', () => {
             croppedImagePreview.style.display = 'flex'; // Tampilkan container pratinjau
             imageCropperContainer.style.display = 'none'; // Sembunyikan cropper
             changePhotoButton.style.display = 'block'; // Tampilkan tombol "Ubah Foto"
+            console.log('Gambar berhasil di-crop dan ditampilkan pratinjau.');
 
             // Konversi canvas ke Blob (data biner) untuk diupload
             croppedCanvas.toBlob((blob) => {
                 croppedBlob = blob;
+                console.log('Cropped image converted to Blob. Size:', blob.size, 'bytes');
             }, 'image/png', 0.9); // Kualitas 0.9 untuk PNG
 
             cropper.destroy(); // Hancurkan instance cropper setelah selesai
+            console.log('Cropper instance dihancurkan setelah cropping.');
+        } else {
+            console.warn('Cropper tidak aktif saat tombol potong diklik.');
+            alert('Tidak ada gambar untuk dipotong.');
         }
     });
 
     // Event listener untuk tombol "Ubah Foto" (Ganti Foto)
     changePhotoButton.addEventListener('click', () => {
+        console.log('Tombol Ubah Foto diklik.');
         resetImageUploadArea(); // Panggil fungsi reset untuk mengulang proses upload
     });
 
@@ -207,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         submitButton.disabled = true; // Nonaktifkan tombol submit selama proses
         submitButton.textContent = 'Memproses...'; // Ubah teks tombol
+        console.log('Formulir disubmit. Tombol dinonaktifkan.');
 
         // Ambil nilai dari input (yang sudah otomatis diubah oleh JS)
         const namaLengkap = namaLengkapInput.value;
@@ -217,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validasi: Pastikan foto sudah di-crop
         if (!croppedBlob) {
             alert('Mohon unggah dan potong foto terlebih dahulu.');
+            console.warn('Submit dibatalkan: Foto belum di-crop.');
             submitButton.disabled = false; // Aktifkan kembali tombol
             submitButton.textContent = 'Daftar Sekarang';
             return;
@@ -225,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validasi: Pastikan semua field wajib terisi
         if (!namaLengkap || !namaSulthon || !noWhatsapp || !majlisWilayah) {
             alert('Mohon lengkapi semua data formulir.');
+            console.warn('Submit dibatalkan: Data formulir belum lengkap.');
             submitButton.disabled = false;
             submitButton.textContent = 'Daftar Sekarang';
             return;
@@ -240,20 +289,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Beri nama file foto sesuai Nama Sulthon + timestamp untuk keunikan
         const fileName = `${namaSulthon.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.png`;
         formData.append('fotoCover', croppedBlob, fileName);
+        console.log('FormData disiapkan dengan file:', fileName);
 
 
         // --- INTEGRASI KE GOOGLE APPS SCRIPT (Web App) ---
         const GOOGLE_APPS_SCRIPT_WEB_APP_URL = CONFIG.GOOGLE_APPS_SCRIPT_WEB_APP_URL; 
 
-        // Validasi URL Apps Script - PERBAIKAN DI SINI
-        // Memastikan URL tidak kosong atau masih placeholder awal
-        if (!GOOGLE_APPS_SCRIPT_WEB_APP_URL || GOOGLE_APPS_SCRIPT_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        // Validasi URL Apps Script - Menggunakan logika yang lebih robust
+        if (!GOOGLE_APPS_SCRIPT_WEB_APP_URL || GOOGLE_APPS_SCRIPT_WEB_APP_URL.trim() === '' || GOOGLE_APPS_SCRIPT_WEB_APP_URL.includes('YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE')) {
             alert('Error Konfigurasi: URL Google Apps Script Web App belum diatur atau masih placeholder di script.js. Mohon periksa kembali.');
             console.error('URL Apps Script tidak valid:', GOOGLE_APPS_SCRIPT_WEB_APP_URL);
             submitButton.disabled = false;
             submitButton.textContent = 'Daftar Sekarang';
             return;
         }
+        console.log('Mengirim data ke URL Apps Script:', GOOGLE_APPS_SCRIPT_WEB_APP_URL);
 
         try {
             // Kirim data ke Google Apps Script Web App
@@ -263,22 +313,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Penting: Jangan set Content-Type header secara manual untuk FormData, browser akan menanganinya.
             });
 
+            if (!response.ok) { // Cek jika respons HTTP tidak OK (status 200-299)
+                const errorText = await response.text(); // Baca respons sebagai teks untuk detail error
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+
             const result = await response.json(); // Asumsi respons dari Apps Script adalah JSON
+            console.log('Respons dari Apps Script:', result);
 
             if (result.status === 'SUCCESS') {
                 showSuccessPopup(); // Tampilkan popup sukses
+                console.log('Pendaftaran BERHASIL.');
                 // Kirim notifikasi WhatsApp ke admin (akan membuka aplikasi WA)
                 sendWhatsappNotification(namaLengkap, namaSulthon, noWhatsapp, majlisWilayah);
             } else {
                 alert('Pendaftaran gagal: ' + (result.message || 'Terjadi kesalahan tidak dikenal.'));
-                console.error('Apps Script ERROR:', result.message);
+                console.error('Apps Script GAGAL:', result.message || 'Respons tidak diketahui.');
             }
         } catch (error) {
             console.error('Error saat submit formulir:', error);
-            alert('Terjadi kesalahan saat pendaftaran. Mohon coba lagi atau hubungi admin.');
+            alert('Terjadi kesalahan saat pendaftaran. Mohon coba lagi atau hubungi admin. Detail error di console.');
         } finally {
             submitButton.disabled = false; // Aktifkan kembali tombol submit
             submitButton.textContent = 'Daftar Sekarang'; // Kembalikan teks tombol
+            console.log('Proses submit formulir selesai.');
         }
     });
 
@@ -296,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Buat link WhatsApp dan buka di tab baru
         const whatsappLink = `https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`;
         window.open(whatsappLink, '_blank'); 
+        console.log('Notifikasi WhatsApp dipicu untuk admin:', adminNumber);
     }
 
 });
