@@ -17,30 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const namaLengkapInput = document.getElementById('namaLengkap');
     const namaSulthonInput = document.getElementById('namaSulthon');
     const noWhatsappInput = document.getElementById('noWhatsapp');
-    const majlisWilayahSelect = document.getElementById('majlisWilayah'); // Menggunakan nama variabel yang lebih deskriptif
+    const majlisWilayahSelect = document.getElementById('majlisWilayah');
     const submitButton = document.querySelector('.submit-button');
 
     let cropper; // Variabel untuk menyimpan instance Cropper.js
     let croppedBlob = null; // Menyimpan blob (data biner) foto yang sudah di-crop
 
-    // --- TEMPAT PENGATURAN KONFIGURASI PENTING ---
-    // Pastikan Anda MENGGANTI nilai GOOGLE_APPS_SCRIPT_WEB_APP_URL setelah deploy!
+    // --- PENTING: KONFIGURASI APLIKASI ---
+    // Pastikan Anda MENGGANTI nilai 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'
     const CONFIG = {
-        // NOMOR WHATSAPP ADMIN ANDA (Format: Kode Negara + Nomor tanpa spasi/strip, contoh: 6281234567890)
-        ADMIN_WHATSAPP_NUMBER: '6285213347126', 
-
-        // ID GOOGLE SPREADSHEET ANDA
-        GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM',
-
-        // ID FOLDER GOOGLE DRIVE ANDA UNTUK FOTO
-        GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m',
-
-        // GANTI INI DENGAN URL GOOGLE APPS SCRIPT WEB APP ANDA
-        // Setelah Anda membuat dan mendeploy Google Apps Script (lihat instruksi di bawah),
-        // Anda akan mendapatkan URL ini.
-        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'
+        ADMIN_WHATSAPP_NUMBER: '6285213347126', // Nomor WhatsApp Admin Anda
+        GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM', // ID Google Spreadsheet Anda
+        GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m', // ID Folder Google Drive Anda untuk Foto
+        // GANTI URL INI SETELAH ANDA DEPLOY GOOGLE APPS SCRIPT
+        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' 
     };
-    // --- AKHIR PENGATURAN KONFIGURASI ---
+    // --- AKHIR KONFIGURASI ---
 
 
     // === Fungsionalitas Popup Konfirmasi ===
@@ -60,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     okPopupButton.onclick = hideSuccessPopup; 
     // Klik di luar popup juga akan menutupnya
     window.onclick = (event) => {
-        if (event.target == successPopup) {
+        if (event.target === successPopup) { // Menggunakan '===' untuk perbandingan yang lebih ketat
             hideSuccessPopup();
         }
     };
@@ -84,6 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // === Fungsionalitas Upload dan Crop Foto (termasuk Drag & Drop) ===
+
+    // Memicu klik pada input file tersembunyi ketika area upload diklik
+    imageUploadArea.addEventListener('click', () => {
+        // Hanya picu klik jika area upload sedang ditampilkan
+        if (imageUploadArea.style.display !== 'none') {
+            fotoCoverInput.click(); // Memicu klik pada input file yang tersembunyi
+        }
+    });
 
     // Mencegah perilaku default browser untuk drag-and-drop (misal: membuka file di browser)
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
