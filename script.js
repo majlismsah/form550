@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // GANTI URL INI SETELAH ANDA DEPLOY GOOGLE APPS SCRIPT
         // URL INI SUDAH TERISI DENGAN URL YANG ANDA BERIKAN SEBELUMNYA.
         GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec' //
-    };
+        
     // --- AKHIR KONFIGURASI ---
 
 
