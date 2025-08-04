@@ -24,18 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let croppedBlob = null; // Menyimpan blob (data biner) foto yang sudah di-crop
 
     // --- TEMPAT PENGATURAN KONFIGURASI PENTING ---
-    // Pastikan Anda MENGGANTI nilai-nilai ini dengan informasi Anda!
+    // Pastikan Anda MENGGANTI nilai GOOGLE_APPS_SCRIPT_WEB_APP_URL setelah deploy!
     const CONFIG = {
-        // GANTI INI DENGAN NOMOR WHATSAPP ADMIN ANDA (Format: Kode Negara + Nomor tanpa spasi/strip, contoh: 6281234567890)
+        // NOMOR WHATSAPP ADMIN ANDA (Format: Kode Negara + Nomor tanpa spasi/strip, contoh: 6281234567890)
         ADMIN_WHATSAPP_NUMBER: '6285213347126', 
 
-        // GANTI INI DENGAN ID GOOGLE SPREADSHEET ANDA
-        // Contoh: dari URL https://docs.google.com/spreadsheets/d/123abcDEF/edit#gid=0, ID-nya adalah 123abcDEF
-        GOOGLE_SHEET_ID: 'YOUR_GOOGLE_SHEET_ID_HERE',
+        // ID GOOGLE SPREADSHEET ANDA
+        GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM',
 
-        // GANTI INI DENGAN ID FOLDER GOOGLE DRIVE ANDA UNTUK FOTO
-        // Contoh: dari URL https://drive.google.com/drive/folders/abcdefg123, ID-nya adalah abcdefg123
-        GOOGLE_DRIVE_FOLDER_ID: 'YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE',
+        // ID FOLDER GOOGLE DRIVE ANDA UNTUK FOTO
+        GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m',
 
         // GANTI INI DENGAN URL GOOGLE APPS SCRIPT WEB APP ANDA
         // Setelah Anda membuat dan mendeploy Google Apps Script (lihat instruksi di bawah),
