@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Ashanf 550 Titik</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="path/to/your/logo.png" alt="Logo Majlis" class="logo">
+            <h1>Pendaftaran Ashanf 550 Titik</h1>
+            <p>Isi formulir di bawah ini untuk mendaftar Ashanf 550 Titik.</p>
+        </div>
+
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="namaLengkap">Nama Lengkap Sesuai KTP:</label>
+                <input type="text" id="namaLengkap" name="namaLengkap" placeholder="Masukkan nama lengkap Anda" required>
+            </div>
+
+            <div class="form-group">
+                <label for="namaSulthon">Nama Sulthon:</label>
+                <input type="text" id="namaSulthon" name="namaSulthon" placeholder="Masukkan nama Sulthon Anda" required>
+            </div>
+
+            <div class="form-group">
+                <label for="noWhatsapp">Nomor WhatsApp (contoh: 6281234567890):</label>
+                <input type="tel" id="noWhatsapp" name="noWhatsapp" pattern="^62[0-9]{9,13}$" placeholder="62xxxxxxxxxxx" required>
+            </div>
+
+            <div class="form-group">
+                <label for="majlisWilayah">Majlis Wilayah:</label>
+                <select id="majlisWilayah" name="majlisWilayah" required>
+                    <option value="">Pilih Wilayah</option>
+                    <option value="Ar-Rahman">Ar-Rahman</option>
+                    <option value="Ar-Rohim">Ar-Rohim</option>
+                    <option value="Al-Qudus">Al-Qudus</option>
+                    <option value="Al-Malik">Al-Malik</option>
+                    <option value="Nurul Salikin">Nurul Salikin</option>
+                    <option value="Nurul Kamilah">Nurul Kamilah</option>
+                    <option value="Nurul Hakim">Nurul Hakim</option>
+                    <option value="Nurul Hikmah">Nurul Hikmah</option>
+                    <option value="Barakotaul Anbiya">Barakotaul Anbiya</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Foto untuk Cover Buku Ashanf 550 Titik (4x6cm):</label>
+                <div id="imageUploadArea" class="image-upload-area">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p>Klik untuk upload atau drag & drop</p>
+                    <p class="file-format-info">JPEG atau PNG</p>
+                    <input type="file" id="fotoCover" name="fotoCover" accept="image/jpeg, image/png" class="file-input" required>
+                </div>
+                
+                <div id="imageCropperContainer" style="display:none;">
+                    <img id="imageToCrop" src="" alt="Gambar untuk dipotong">
+                    <button type="button" id="cropButton" class="crop-button">Potong Foto</button>
+                </div>
+
+                <div id="croppedImagePreview" class="cropped-image-preview">
+                    <img id="finalCroppedImage" src="" alt="Foto Terpotong" style="display:none;">
+                    <button type="button" id="changePhotoButton" class="change-photo-button" style="display:none;">
+                        <i class="fas fa-redo-alt"></i> Ubah Foto
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">Daftar Sekarang</button>
+        </form>
+    </div>
+
+    <div id="successPopup" class="popup">
+        <div class="popup-content">
+            <span class="close-button">&times;</span>
+            <i class="fas fa-check-circle success-icon"></i>
+            <h2>Pendaftaran Berhasil!</h2>
+            <p>Terima kasih, pendaftaran Anda telah berhasil diproses.</p>
+            <p>Admin akan segera menghubungi Anda melalui WhatsApp.</p>
+            <button type="button" class="ok-button">OK</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
