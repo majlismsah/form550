@@ -10,7 +10,18 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    .slide-in-bottom {
+      animation: slideInBottom 1s ease-out forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
     
+    @keyframes slideInBottom {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #1a202c;
@@ -197,8 +208,8 @@
         <img src="https://raw.githubusercontent.com/majlismsah/formblankoashnaf/main/logo.png" 
              alt="Logo MSAH" 
              class="logo w-28 h-28 mx-auto rounded-full object-cover border-[3px] border-teal-400/80 shadow-xl hover:border-teal-300">
-        <h1 class="text-2xl font-bold mt-4">
-          <span class="text-teal-400">Registrasi</span> Pembukaan Ashnaf 550 Titik
+        <h1 class="text-3xl font-bold mt-4 slide-in-bottom">
+          Registrasi Pembukaan Ashnaf 550 Titik
         </h1>
       </div>
            
