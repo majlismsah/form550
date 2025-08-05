@@ -2,7 +2,7 @@
 const CONFIG = {
   SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxm3gltFo2lcRTBMpT9hDgxneDcoS-yLW_hffdytvZNQMyqR2UtgqTA-S8O_71c3kAOiw/exec",
   ADMIN_WA_NUMBER: "6285213347126",
-  MAX_FILE_SIZE: 5 * 1024 * 1024 // 10MB
+  MAX_FILE_SIZE: 10 * 1024 * 1024 // 10MB 
 };
 
 // Initialize Cropper instances
@@ -74,7 +74,9 @@ function initCropper(prefix) {
         el.cropSection.classList.remove('hidden');
         
         const cropperOptions = {
-          aspectRatio: 1,
+          // --- BARIS INI YANG DIUBAH ---
+          aspectRatio: 2 / 3, // Mengatur rasio 4x6 cm (lebar:tinggi = 2:3)
+          // -----------------------------
           viewMode: 1,
           autoCropArea: 0.8,
           responsive: true,
@@ -89,7 +91,8 @@ function initCropper(prefix) {
     }
   });
 
-
+  // ... (sisa kode fungsi initCropper tetap sama)
+  
   // Rotate buttons
   el.rotateLeft.addEventListener('click', function() {
     if (mobileCropper) mobileCropper.rotate(-90);
@@ -116,9 +119,10 @@ function initCropper(prefix) {
   el.saveCrop.addEventListener('click', function() {
     if (!mobileCropper) return;
     
+    // Ukuran output dalam pixel untuk kualitas yang baik
     const croppedCanvas = mobileCropper.getCroppedCanvas({
-      width: 400,
-      height: 400,
+      width: 400, // Lebar hasil crop
+      height: 600, // Tinggi hasil crop
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high',
     });
