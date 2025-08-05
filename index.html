@@ -1,267 +1,341 @@
-// Configuration
-const CONFIG = {
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzUiB3eVCJu554W4HxwjdqpsPRjBUXx6pCJCEnInCO8tpV9HF3or-zfT9FgOijmsTJ8/exec",
-  ADMIN_WA_NUMBER: "6285213347126",
-  MAX_FILE_SIZE: 5 * 1024 * 1024 // 10MB
-};
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrasi Pembukaan Ashnaf 550 Titik</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #1a202c;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-// Initialize Cropper instances
-let mobileCropper;
+    .container {
+      max-width: 900px;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+    }
+    
+    .loading-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .loading-content {
+      background: rgba(255, 255, 255, 0.9);
+      color: #2C7A7B;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 300px;
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #38b2ac;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    input, select {
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
 
-// DOM Elements
-const elements = {
-  mobile: {
-    form: document.getElementById('preorderFormMobile'),
-    fileInput: document.getElementById('mobileFileInput'),
-    imagePreview: document.getElementById('mobileImagePreview'),
-    uploadSection: document.getElementById('mobileUploadSection'),
-    cropSection: document.getElementById('mobileCropSection'),
-    resultSection: document.getElementById('mobileResultSection'),
-    croppedResult: document.getElementById('mobileCroppedResult'),
-    croppedImageData: document.getElementById('mobileCroppedImageData'),
-    rotateLeft: document.getElementById('mobileRotateLeft'),
-    rotateRight: document.getElementById('mobileRotateRight'),
-    resetCrop: document.getElementById('mobileResetCrop'),
-    cancelCrop: document.getElementById('mobileCancelCrop'),
-    saveCrop: document.getElementById('mobileSaveCrop'),
-    changePhoto: document.getElementById('mobileChangePhoto'),
-  },
-  sheet: document.getElementById('sheet'),
-  sheetOverlay: document.getElementById('sheetOverlay'),
-  loadingPopup: document.getElementById('loadingPopup'),
-  successPopup: document.getElementById('successPopup'),
-  whatsappButton: document.getElementById('whatsappButton')
-};
-function toggleSheet(show) {
-  if (show) {
-    elements.sheet.classList.remove('hidden');
-    elements.sheet.classList.add('show');
-    elements.sheetOverlay.classList.add('active');
-  } else {
-    elements.sheet.classList.remove('show');
-    elements.sheetOverlay.classList.remove('active');
-    setTimeout(() => elements.sheet.classList.add('hidden'), 300);
-  }
-}
-function init() {
-  setupCroppers();
-  setupFormSubmissions();
-  setupPhoneNumberFormatting();
-}
+    #sheet input,
+    #sheet select {
+      background-color: #2d3748;
+      color: #fff;
+    }
 
-// Cropper Functions
-function setupCroppers() {
-  initCropper('mobile');
-}
+    #sheet input::placeholder,
+    #sheet select option[disabled] {
+      color: #a0aec0;
+    }
 
-function initCropper(prefix) {
-  const el = elements[prefix];
-  
-  el.fileInput.addEventListener('change', function(e) {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
+    input:focus, select:focus {
+      border-color: #38b2ac;
+      box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.3);
+    }
+    
+    button {
+      transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    #sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #2d3748;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      z-index: 1000;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    #sheet.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    #sheet.hidden {
+      display: none;
+    }
+
+    .sheet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    .sheet-overlay.active {
+      display: block;
+    }
+
+    .cropper-container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
+    .cropper-view-box, .cropper-face {
+      border-radius: 50%;
+    }
+    
+    #imagePreview, #mobileImagePreview {
+      max-height: 400px;
+    }
+    
+    .cropped-preview {
+      max-width: 150px;
+      border-radius: 8px;
+      margin: 10px auto;
+    }
+
+    .logo {
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.15));
+    }
+    
+    .main-content {
+      padding: 2.5rem;
+    }
+    
+    #successPopup #whatsappButton {
+      background-color: #38b2ac !important; /* Warna teal-500 Tailwind */
+      color: #ffffff !important; /* Warna putih */
+      font-weight: 600 !important; /* Semibold */
+      transition: background-color 0.3s ease;
+    }
+
+    #successPopup #whatsappButton:hover {
+      background-color: #319795 !important; /* Warna teal-600 Tailwind */
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-content flex flex-col justify-center items-center text-center">
+      <div class="logo-container text-center mb-6">
+        <img src="https://raw.githubusercontent.com/majlismsah/formblankoashnaf/main/logo.png" 
+             alt="Logo MSAH" 
+             class="logo w-28 h-28 mx-auto rounded-full object-cover border-[3px] border-teal-400/80 shadow-xl hover:border-teal-300">
+        <h1 class="text-3xl font-bold mt-4">
+          <span class="text-teal-400">Registrasi</span> Pembukaan Ashnaf 550 Titik
+        </h1>
+      </div>
+      <p class="text-white/80 mb-6 max-w-xl">
+        Formulir ini digunakan untuk registrasi pembukaan titik-titik baru Ashnaf di seluruh wilayah.
+      </p>
       
-      if (file.size > CONFIG.MAX_FILE_SIZE) {
-        alert('Ukuran file terlalu besar. Maksimal 5MB');
-        el.fileInput.value = '';
-        return;
-      }
+      <div class="mt-8 w-full">
+        <button onclick="toggleSheet(true)" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition w-full md:w-auto">
+          👉 Klik untuk isi Formulir Registrasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sheetOverlay" class="sheet-overlay" onclick="toggleSheet(false)"></div>
+
+  <div id="sheet" class="hidden">
+    <div class="text-center mb-4">
+      <img src="https://raw.githubusercontent.com/majlismsah/formblankoashnaf/main/logo.png" 
+           alt="Logo MSAH" 
+           class="w-20 h-20 mx-auto rounded-full mb-2 border-2 border-teal-400">
+      <h2 class="text-xl font-bold text-white">Form Registrasi Ashnaf</h2>
+      <button onclick="toggleSheet(false)" class="text-sm text-gray-300 mt-1 hover:underline">Tutup</button>
+    </div>
+    <form id="preorderFormMobile">
+      <div class="mb-4">
+        <label class="block font-medium mb-1 text-white" for="namaKtpMobile">Nama KTP</label>
+        <input type="text" id="namaKtpMobile" name="nama_ktp" placeholder="Contoh: AHMAD MUNADIL" class="w-full p-3 rounded-md bg-gray-700 text-white" required />
+      </div>
       
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        el.imagePreview.src = event.target.result;
-        el.uploadSection.classList.add('hidden');
-        el.cropSection.classList.remove('hidden');
+      <div class="mb-4">
+        <label class="block font-medium mb-1 text-white" for="namaSulthonMobile">Nama Sulthon</label>
+        <input type="text" id="namaSulthonMobile" name="nama_sulthon" placeholder="Contoh: ABDULLAH" class="w-full p-3 rounded-md bg-gray-700 text-white" required />
+      </div>
+      
+      <div class="mb-4">
+        <label class="block font-medium mb-1 text-white" for="waMobile">No. WhatsApp</label>
+        <input type="tel" id="waMobile" name="no_wa" class="w-full p-3 rounded-md bg-gray-700 text-white" placeholder="081234567890" required />
+      </div>
+      
+      <div class="mb-4">
+        <label class="block font-medium mb-1 text-white" for="majlisMobile">Wilayah Majlis</label>
+        <select id="majlisMobile" name="majlis" class="w-full p-3 rounded-md bg-gray-700 text-white" required>
+          <option value="" disabled selected hidden>Pilih Majlis</option>
+          <option value="Ar-Rahman">Ar-Rahman</option>
+          <option value="Ar-Rohim">Ar-Rohim</option>
+          <option value="Al-Qudus">Al-Qudus</option>
+          <option value="Al-Malik">Al-Malik</option>
+          <option value="Nurul Salikin">Nurul Salikin</option>
+          <option value="Nurul Kamilah">Nurul Kamilah</option>
+          <option value="Nurul Hakim">Nurul Hakim</option>
+          <option value="Nurul Hikmah">Nurul Hikmah</option>
+          <option value="Barakotaul Anbiya">Barakotaul Anbiya</option>
+        </select>
+      </div>
+      
+      <div class="mb-6">
+        <label class="block font-medium mb-1 text-white">Foto Profil Jamaah</label>
         
-        const cropperOptions = {
-          aspectRatio: 1,
-          viewMode: 1,
-          autoCropArea: 0.8,
-          responsive: true,
-          guides: false,
-          background: false
-        };
+        <div id="mobileUploadSection">
+          <label class="flex flex-col items-center px-4 py-6 bg-gray-700 rounded-md border-2 border-dashed border-gray-600 cursor-pointer hover:border-teal-500 mb-4">
+            <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <p class="text-sm text-gray-400">
+              <span class="font-semibold text-teal-400">Klik untuk upload</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-1">JPEG atau PNG (Maks. 5MB)</p>
+            <input type="file" id="mobileFileInput" accept="image/*" class="hidden" required>
+          </label>
+        </div>
         
-        if (prefix === 'mobile' && mobileCropper) mobileCropper.destroy();
-        mobileCropper = new Cropper(el.imagePreview, cropperOptions);
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+        <div id="mobileCropSection" class="hidden">
+          <div class="mb-4">
+            <div class="cropper-container">
+              <img id="mobileImagePreview" class="block max-w-full">
+            </div>
+          </div>
+          
+          <div class="flex space-x-2 mb-4">
+            <button id="mobileRotateLeft" type="button" class="px-3 py-1 bg-gray-600 text-white rounded">
+              ↺ Kiri
+            </button>
+            <button id="mobileRotateRight" type="button" class="px-3 py-1 bg-gray-600 text-white rounded">
+              ↻ Kanan
+            </button>
+            <button id="mobileResetCrop" type="button" class="px-3 py-1 bg-gray-600 text-white rounded">
+              ⟲ Reset
+            </button>
+          </div>
+          
+          <div class="flex justify-between">
+            <button id="mobileCancelCrop" type="button" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">
+              Batal
+            </button>
+            <button id="mobileSaveCrop" type="button" class="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600">
+              Simpan
+            </button>
+          </div>
+        </div>
+        
+        <div id="mobileResultSection" class="hidden mt-4">
+          <div id="mobileCroppedResult" class="mb-2"></div>
+          <input type="hidden" id="mobileCroppedImageData" name="fotoProfil">
+          <button id="mobileChangePhoto" type="button" class="text-sm text-teal-400 hover:underline">
+            Ganti Foto
+          </button>
+        </div>
+      </div>
+      
+      <button type="submit" class="bg-teal-500 hover:bg-teal-600 w-full text-white py-3 rounded-md font-bold shadow-lg border-2 border-teal-500 hover:border-teal-300 transition-all duration-300">
+        Kirim & Konfirmasi via WA ke Admin
+      </button>
+    </form>
+  </div>
 
+  <div id="loadingPopup" class="loading-popup" style="display: none;">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p class="font-semibold text-teal-700">Data sedang diproses...</p>
+    </div>
+  </div>
 
-  // Rotate buttons
-  el.rotateLeft.addEventListener('click', function() {
-    if (mobileCropper) mobileCropper.rotate(-90);
-  });
+  <div id="successPopup" class="loading-popup" style="display: none;">
+    <div class="loading-content bg-white shadow-xl rounded-lg p-6 text-center">
+      <svg class="mx-auto w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <h3 class="text-2xl font-bold text-gray-800 mb-2">Pendaftaran Sukses!</h3>
+      <p class="text-gray-600 mb-6">Terima kasih, data Anda telah berhasil dikirim. Silakan konfirmasi ke admin.</p>
+      <a id="whatsappButton" href="#" target="_blank" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-6 rounded-md transition-colors inline-block">
+        Konfirmasi ke Admin via WhatsApp
+      </a>
+    </div>
+  </div>
 
-  el.rotateRight.addEventListener('click', function() {
-    if (mobileCropper) mobileCropper.rotate(90);
-  });
-
-  // Reset button
-  el.resetCrop.addEventListener('click', function() {
-    if (mobileCropper) mobileCropper.reset();
-  });
-
-  // Cancel button
-  el.cancelCrop.addEventListener('click', function() {
-    if (mobileCropper) mobileCropper.destroy();
-    el.cropSection.classList.add('hidden');
-    el.uploadSection.classList.remove('hidden');
-    el.fileInput.value = '';
-  });
-
-  // Save button
-  el.saveCrop.addEventListener('click', function() {
-    if (!mobileCropper) return;
-    
-    const croppedCanvas = mobileCropper.getCroppedCanvas({
-      width: 400,
-      height: 400,
-      imageSmoothingEnabled: true,
-      imageSmoothingQuality: 'high',
-    });
-    
-    const croppedImage = document.createElement('img');
-    croppedImage.src = croppedCanvas.toDataURL('image/jpeg', 0.9);
-    croppedImage.classList.add('cropped-preview');
-    
-    el.croppedResult.innerHTML = '';
-    el.croppedResult.appendChild(croppedImage);
-    el.croppedImageData.value = croppedCanvas.toDataURL('image/jpeg', 0.9);
-    
-    el.cropSection.classList.add('hidden');
-    el.resultSection.classList.remove('hidden');
-  });
-
-  // Change photo button
-  el.changePhoto.addEventListener('click', function() {
-    el.resultSection.classList.add('hidden');
-    el.uploadSection.classList.remove('hidden');
-    el.fileInput.value = '';
-  });
-}
-
-// Form Handling
-function handleFormSubmit(prefix, fieldIds) {
-  const form = elements[prefix].form;
-  const btn = form.querySelector('button[type="submit"]');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-      nama_ktp: document.getElementById(fieldIds.nama_ktp).value,
-      nama_sulthon: document.getElementById(fieldIds.nama_sulthon).value,
-      no_wa: document.getElementById(fieldIds.no_wa).value,
-      majlis: document.getElementById(fieldIds.majlis).value,
-      fotoProfil: document.getElementById(fieldIds.fotoProfil).value
-    };
-
-    await submitFormData(formData, btn, prefix);
-  });
-}
-
-function setupFormSubmissions() {
-  handleFormSubmit('mobile', {
-    nama_ktp: "namaKtpMobile",
-    nama_sulthon: "namaSulthonMobile",
-    no_wa: "waMobile",
-    majlis: "majlisMobile",
-    fotoProfil: "mobileCroppedImageData"
-  });
-}
-
-async function submitFormData(formData, btn, prefix) {
-  btn.disabled = true;
-  const originalBtnText = btn.textContent;
-  btn.textContent = 'Memproses...';
-
-  // Tampilkan loading popup
-  elements.loadingPopup.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-
-  try {
-    const payload = {
-      nama_ktp: formData.nama_ktp,
-      nama_sulthon: formData.nama_sulthon,
-      no_wa: formData.no_wa.replace(/[^0-9]/g, ''),
-      majlis: formData.majlis,
-      foto_file: formData.fotoProfil.split(',')[1],
-      foto_file_type: 'image/jpeg',
-      foto_file_name: `profile_${Date.now()}.jpg`
-    };
-
-    const response = await fetch(CONFIG.SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(payload)
-    });
-
-    if (!response.ok) throw new Error(await response.text());
-
-    // Sembunyikan loading popup
-    elements.loadingPopup.style.display = 'none';
-    
-    // Buat pesan WhatsApp
-    const waMessage = `Halo Admin, saya sudah registrasi pembukaan Ashnaf 550 Titik:\n\n*Nama KTP*: ${payload.nama_ktp}\n*Nama Sulthon*: ${payload.nama_sulthon}\n*No WA*: 62${payload.no_wa.replace(/^0/, '')}\n*Majlis*: ${payload.majlis}`;
-    
-    // Set tautan ke tombol konfirmasi di pop-up sukses
-    elements.whatsappButton.href = `https://wa.me/${CONFIG.ADMIN_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
-
-    // Tampilkan pop-up sukses
-    elements.successPopup.style.display = 'flex';
-
-    // Reset form
-    elements[prefix].form.reset();
-    elements[prefix].resultSection.classList.add('hidden');
-    elements[prefix].uploadSection.classList.remove('hidden');
-    elements[prefix].fileInput.value = '';
-
-    // Sembunyikan bottom sheet
-    toggleSheet(false);
-
-  } catch (error) {
-    console.error('Error:', error);
-    showError(error.message || 'Gagal mengirim data');
-  } finally {
-    // Selalu hapus loading dan enable tombol
-    elements.loadingPopup.style.display = 'none';
-    document.body.style.overflow = '';
-    btn.disabled = false;
-    btn.textContent = originalBtnText;
-  }
-}
-
-// Helper Functions
-function showError(errorMsg) {
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-[10000]';
-  errorDiv.textContent = `❌ ${errorMsg}`;
-  document.body.appendChild(errorDiv);
-  setTimeout(() => errorDiv.remove(), 5000);
-}
-
-function setupPhoneNumberFormatting() {
-  const phoneInputs = [document.getElementById('waMobile')];
-  
-  phoneInputs.forEach(input => {
-    if (input) {
-      input.addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
-      });
-    }
-  });
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  init();
-  // Close popup saat klik di luar area popup
-  elements.successPopup.addEventListener('click', (e) => {
-    if (e.target.id === 'successPopup') {
-      elements.successPopup.style.display = 'none';
-    }
-  });
-});
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
