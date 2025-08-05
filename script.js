@@ -209,7 +209,7 @@ async function submitFormData(formData, btn, prefix) {
     elements.loadingPopup.style.display = 'none';
     
     // Buat pesan WhatsApp
-    const waMessage = `Halo Admin, saya sudah registrasi pembukaan Ashnaf 550 Titik:\n\n*Nama KTP*: ${payload.nama_ktp}\n*Nama Sulthon*: ${payload.nama_sulthon}\n*No WA*: 62${payload.no_wa.replace(/^0/, '')}\n*Majlis*: ${payload.majlis}`;
+    const waMessage = `Assalamualaikum Kang, saya berminat dan sudah registrasi pembukaan Ashnaf 550 Titik:\n\n*Nama KTP*: ${payload.nama_ktp}\n*Nama Sulthon*: ${payload.nama_sulthon}\n*No WA*: 62${payload.no_wa.replace(/^0/, '')}\n*Majlis*: ${payload.majlis}`;
     
     // Set tautan ke tombol konfirmasi di pop-up sukses
     elements.whatsappButton.href = `https://wa.me/${CONFIG.ADMIN_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
