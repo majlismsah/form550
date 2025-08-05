@@ -1,345 +1,267 @@
+// Configuration
+const CONFIG = {
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzUiB3eVCJu554W4HxwjdqpsPRjBUXx6pCJCEnInCO8tpV9HF3or-zfT9FgOijmsTJ8/exec",
+  ADMIN_WA_NUMBER: "6285213347126",
+  MAX_FILE_SIZE: 5 * 1024 * 1024 // 10MB
+};
+
+// Initialize Cropper instances
+let mobileCropper;
+
+// DOM Elements
+const elements = {
+  mobile: {
+    form: document.getElementById('preorderFormMobile'),
+    fileInput: document.getElementById('mobileFileInput'),
+    imagePreview: document.getElementById('mobileImagePreview'),
+    uploadSection: document.getElementById('mobileUploadSection'),
+    cropSection: document.getElementById('mobileCropSection'),
+    resultSection: document.getElementById('mobileResultSection'),
+    croppedResult: document.getElementById('mobileCroppedResult'),
+    croppedImageData: document.getElementById('mobileCroppedImageData'),
+    rotateLeft: document.getElementById('mobileRotateLeft'),
+    rotateRight: document.getElementById('mobileRotateRight'),
+    resetCrop: document.getElementById('mobileResetCrop'),
+    cancelCrop: document.getElementById('mobileCancelCrop'),
+    saveCrop: document.getElementById('mobileSaveCrop'),
+    changePhoto: document.getElementById('mobileChangePhoto'),
+  },
+  sheet: document.getElementById('sheet'),
+  sheetOverlay: document.getElementById('sheetOverlay'),
+  loadingPopup: document.getElementById('loadingPopup'),
+  successPopup: document.getElementById('successPopup'),
+  whatsappButton: document.getElementById('whatsappButton')
+};
+function toggleSheet(show) {
+  if (show) {
+    elements.sheet.classList.remove('hidden');
+    elements.sheet.classList.add('show');
+    elements.sheetOverlay.classList.add('active');
+  } else {
+    elements.sheet.classList.remove('show');
+    elements.sheetOverlay.classList.remove('active');
+    setTimeout(() => elements.sheet.classList.add('hidden'), 300);
+  }
+}
+function init() {
+  setupCroppers();
+  setupFormSubmissions();
+  setupPhoneNumberFormatting();
+}
+
+// Cropper Functions
+function setupCroppers() {
+  initCropper('mobile');
+}
+
+function initCropper(prefix) {
+  const el = elements[prefix];
+  
+  el.fileInput.addEventListener('change', function(e) {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      
+      if (file.size > CONFIG.MAX_FILE_SIZE) {
+        alert('Ukuran file terlalu besar. Maksimal 5MB');
+        el.fileInput.value = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        el.imagePreview.src = event.target.result;
+        el.uploadSection.classList.add('hidden');
+        el.cropSection.classList.remove('hidden');
+        
+        const cropperOptions = {
+          aspectRatio: 1,
+          viewMode: 1,
+          autoCropArea: 0.8,
+          responsive: true,
+          guides: false,
+          background: false
+        };
+        
+        if (prefix === 'mobile' && mobileCropper) mobileCropper.destroy();
+        mobileCropper = new Cropper(el.imagePreview, cropperOptions);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+
+  // Rotate buttons
+  el.rotateLeft.addEventListener('click', function() {
+    if (mobileCropper) mobileCropper.rotate(-90);
+  });
+
+  el.rotateRight.addEventListener('click', function() {
+    if (mobileCropper) mobileCropper.rotate(90);
+  });
+
+  // Reset button
+  el.resetCrop.addEventListener('click', function() {
+    if (mobileCropper) mobileCropper.reset();
+  });
+
+  // Cancel button
+  el.cancelCrop.addEventListener('click', function() {
+    if (mobileCropper) mobileCropper.destroy();
+    el.cropSection.classList.add('hidden');
+    el.uploadSection.classList.remove('hidden');
+    el.fileInput.value = '';
+  });
+
+  // Save button
+  el.saveCrop.addEventListener('click', function() {
+    if (!mobileCropper) return;
+    
+    const croppedCanvas = mobileCropper.getCroppedCanvas({
+      width: 400,
+      height: 400,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+    
+    const croppedImage = document.createElement('img');
+    croppedImage.src = croppedCanvas.toDataURL('image/jpeg', 0.9);
+    croppedImage.classList.add('cropped-preview');
+    
+    el.croppedResult.innerHTML = '';
+    el.croppedResult.appendChild(croppedImage);
+    el.croppedImageData.value = croppedCanvas.toDataURL('image/jpeg', 0.9);
+    
+    el.cropSection.classList.add('hidden');
+    el.resultSection.classList.remove('hidden');
+  });
+
+  // Change photo button
+  el.changePhoto.addEventListener('click', function() {
+    el.resultSection.classList.add('hidden');
+    el.uploadSection.classList.remove('hidden');
+    el.fileInput.value = '';
+  });
+}
+
+// Form Handling
+function handleFormSubmit(prefix, fieldIds) {
+  const form = elements[prefix].form;
+  const btn = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      nama_ktp: document.getElementById(fieldIds.nama_ktp).value,
+      nama_sulthon: document.getElementById(fieldIds.nama_sulthon).value,
+      no_wa: document.getElementById(fieldIds.no_wa).value,
+      majlis: document.getElementById(fieldIds.majlis).value,
+      fotoProfil: document.getElementById(fieldIds.fotoProfil).value
+    };
+
+    await submitFormData(formData, btn, prefix);
+  });
+}
+
+function setupFormSubmissions() {
+  handleFormSubmit('mobile', {
+    nama_ktp: "namaKtpMobile",
+    nama_sulthon: "namaSulthonMobile",
+    no_wa: "waMobile",
+    majlis: "majlisMobile",
+    fotoProfil: "mobileCroppedImageData"
+  });
+}
+
+async function submitFormData(formData, btn, prefix) {
+  btn.disabled = true;
+  const originalBtnText = btn.textContent;
+  btn.textContent = 'Memproses...';
+
+  // Tampilkan loading popup
+  elements.loadingPopup.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const payload = {
+      nama_ktp: formData.nama_ktp,
+      nama_sulthon: formData.nama_sulthon,
+      no_wa: formData.no_wa.replace(/[^0-9]/g, ''),
+      majlis: formData.majlis,
+      foto_file: formData.fotoProfil.split(',')[1],
+      foto_file_type: 'image/jpeg',
+      foto_file_name: `profile_${Date.now()}.jpg`
+    };
+
+    const response = await fetch(CONFIG.SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(payload)
+    });
+
+    if (!response.ok) throw new Error(await response.text());
+
+    // Sembunyikan loading popup
+    elements.loadingPopup.style.display = 'none';
+    
+    // Buat pesan WhatsApp
+    const waMessage = `Halo Admin, saya sudah registrasi pembukaan Ashnaf 550 Titik:\n\n*Nama KTP*: ${payload.nama_ktp}\n*Nama Sulthon*: ${payload.nama_sulthon}\n*No WA*: 62${payload.no_wa.replace(/^0/, '')}\n*Majlis*: ${payload.majlis}`;
+    
+    // Set tautan ke tombol konfirmasi di pop-up sukses
+    elements.whatsappButton.href = `https://wa.me/${CONFIG.ADMIN_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
+
+    // Tampilkan pop-up sukses
+    elements.successPopup.style.display = 'flex';
+
+    // Reset form
+    elements[prefix].form.reset();
+    elements[prefix].resultSection.classList.add('hidden');
+    elements[prefix].uploadSection.classList.remove('hidden');
+    elements[prefix].fileInput.value = '';
+
+    // Sembunyikan bottom sheet
+    toggleSheet(false);
+
+  } catch (error) {
+    console.error('Error:', error);
+    showError(error.message || 'Gagal mengirim data');
+  } finally {
+    // Selalu hapus loading dan enable tombol
+    elements.loadingPopup.style.display = 'none';
+    document.body.style.overflow = '';
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
+  }
+}
+
+// Helper Functions
+function showError(errorMsg) {
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-[10000]';
+  errorDiv.textContent = `❌ ${errorMsg}`;
+  document.body.appendChild(errorDiv);
+  setTimeout(() => errorDiv.remove(), 5000);
+}
+
+function setupPhoneNumberFormatting() {
+  const phoneInputs = [document.getElementById('waMobile')];
+  
+  phoneInputs.forEach(input => {
+    if (input) {
+      input.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+    }
+  });
+}
+
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // === Variabel Elemen DOM ===
-    const registrationForm = document.getElementById('registrationForm');
-    const fotoCoverInput = document.getElementById('fotoCover');
-    const imageUploadArea = document.getElementById('imageUploadArea');
-    const imageCropperContainer = document.getElementById('imageCropperContainer');
-    const imageToCrop = document.getElementById('imageToCrop');
-    const cropButton = document.getElementById('cropButton');
-    const finalCroppedImage = document.getElementById('finalCroppedImage');
-    const croppedImagePreview = document.getElementById('croppedImagePreview');
-    const changePhotoButton = document.getElementById('changePhotoButton');
-
-    const successPopup = document.getElementById('successPopup');
-    const closePopupButton = successPopup.querySelector('.close-button');
-    const okPopupButton = successPopup.querySelector('.ok-button');
-    const whatsappAdminButton = document.getElementById('whatsappAdminButton'); // Tombol WA di popup
-    const popupTitle = successPopup.querySelector('h2'); // Judul popup
-    const popupMessageElement = successPopup.querySelector('p'); // Pesan di popup
-
-    const namaLengkapInput = document.getElementById('namaLengkap');
-    const namaSulthonInput = document.getElementById('namaSulthon');
-    const noWhatsappInput = document.getElementById('noWhatsapp');
-    const majlisWilayahSelect = document.getElementById('majlisWilayah');
-    const submitButton = document.querySelector('.submit-button');
-    const loadingMessage = document.getElementById('loadingMessage'); // Elemen pesan loading baru
-
-    let cropper;
-    let croppedBlob = null;
-
-    // --- PENTING: KONFIGURASI APLIKASI ---
-    const CONFIG = {
-        ADMIN_WHATSAPP_NUMBER: '6285213347126', // Nomor WhatsApp Admin Anda
-        GOOGLE_SHEET_ID: '1B-nvTwNUe6-x6fab6-5xGzdqnM92C2HXuqGVNFkurBM', // ID Google Spreadsheet Anda
-        GOOGLE_DRIVE_FOLDER_ID: '1pSvqc1y2P69U4Z0QrI0WLwmXUC1bZd7m', // ID Folder Google Drive Anda untuk Foto
-        GOOGLE_APPS_SCRIPT_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyUudhp-Bc1DOVfE969vF-U0mu7Nh_KIefTdx0KyKVy8tafOiZBAFdbrrj_EkQOylk4mw/exec'
-    };
-    // --- AKHIR KONFIGURASI ---
-
-
-    // === Fungsionalitas Popup Konfirmasi ===
-    function showSuccessPopup(title, message, showWhatsappButton = false) {
-        if (popupTitle) popupTitle.textContent = title;
-        if (popupMessageElement) popupMessageElement.textContent = message;
-        
-        if (whatsappAdminButton) {
-            if (showWhatsappButton) {
-                whatsappAdminButton.style.display = 'block';
-                whatsappAdminButton.onclick = () => {
-                    const adminNumber = CONFIG.ADMIN_WHATSAPP_NUMBER;
-                    const whatsappMessage = `*Pendaftaran Baru Ashanf 550 Titik:*\n\n` +
-                                            `*Nama Lengkap:* ${namaLengkapInput.value}\n` +
-                                            `*Nama Sulthon:* ${namaSulthonInput.value}\n` +
-                                            `*No. WhatsApp Pendaftar:* ${noWhatsappInput.value}\n` +
-                                            `*Majlis Wilayah:* ${majlisWilayahSelect.value}\n\n` +
-                                            `Mohon segera ditindaklanjuti.`;
-                    const whatsappLink = `https://wa.me/${adminNumber}?text=${encodeURIComponent(whatsappMessage)}`;
-                    window.open(whatsappLink, '_blank');
-                    console.log('Notifikasi WhatsApp dipicu untuk admin:', adminNumber);
-                };
-            } else {
-                whatsappAdminButton.style.display = 'none';
-            }
-        }
-        successPopup.style.display = 'flex';
+  init();
+  // Close popup saat klik di luar area popup
+  elements.successPopup.addEventListener('click', (e) => {
+    if (e.target.id === 'successPopup') {
+      elements.successPopup.style.display = 'none';
     }
-
-    function hideSuccessPopup() {
-        successPopup.style.display = 'none';
-        registrationForm.reset();
-        resetImageUploadArea();
-        croppedBlob = null;
-        if (whatsappAdminButton) {
-            whatsappAdminButton.style.display = 'none';
-        }
-        // Reset pesan dan judul popup ke default jika diperlukan
-        if (popupTitle) popupTitle.textContent = 'Pendaftaran Berhasil!';
-        if (popupMessageElement) popupMessageElement.textContent = 'Terima kasih atas pendaftaran Anda.';
-    }
-
-    closePopupButton.onclick = hideSuccessPopup;
-    okPopupButton.onclick = hideSuccessPopup; 
-    window.onclick = (event) => {
-        if (event.target === successPopup) {
-            hideSuccessPopup();
-        }
-    };
-
-    // Fungsi untuk mereset seluruh area upload foto ke kondisi awal
-    function resetImageUploadArea() {
-        console.log('resetImageUploadArea dipanggil');
-        if (cropper) {
-            cropper.destroy();
-            console.log('Cropper instance dihancurkan.');
-        }
-        imageCropperContainer.style.display = 'none';
-        
-        finalCroppedImage.style.display = 'none';
-        finalCroppedImage.src = '';
-        croppedImagePreview.style.display = 'none';
-        changePhotoButton.style.display = 'none';
-        
-        imageUploadArea.style.display = 'flex';
-        imageUploadArea.classList.remove('dragover');
-        fotoCoverInput.value = '';
-        console.log('Area upload foto direset ke kondisi awal.');
-    }
-
-
-    // === Fungsionalitas Upload dan Crop Foto (termasuk Drag & Drop) ===
-
-    imageUploadArea.addEventListener('click', (e) => {
-        console.log('imageUploadArea diklik.');
-        if (imageUploadArea.style.display !== 'none') {
-            console.log('Memicu klik pada fotoCoverInput.');
-            fotoCoverInput.click();
-        } else {
-            console.log('imageUploadArea tidak ditampilkan, klik tidak dipicu.');
-        }
-    });
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        imageUploadArea.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    imageUploadArea.addEventListener('dragenter', () => {
-        imageUploadArea.classList.add('dragover');
-        console.log('Drag Enter');
-    }, false);
-    imageUploadArea.addEventListener('dragleave', () => {
-        imageUploadArea.classList.remove('dragover');
-        console.log('Drag Leave');
-    }, false);
-    imageUploadArea.addEventListener('dragover', () => {
-        imageUploadArea.classList.add('dragover');
-        console.log('Drag Over');
-    }, false);
-
-    imageUploadArea.addEventListener('drop', (e) => {
-        console.log('File didrop.');
-        imageUploadArea.classList.remove('dragover');
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        handleFiles(files);
-    }, false);
-
-    fotoCoverInput.addEventListener('change', (e) => {
-        console.log('File dipilih melalui input standar.');
-        handleFiles(e.target.files);
-    });
-
-    function handleFiles(files) {
-        if (files.length === 0) {
-            console.warn('Tidak ada file yang dipilih.');
-            return;
-        }
-        const file = files[0];
-        console.log('File yang dipilih:', file.name, file.type, file.size);
-        if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                console.log('FileReader selesai membaca file.');
-                if (cropper) {
-                    cropper.destroy();
-                    console.log('Cropper lama dihancurkan sebelum inisialisasi baru.');
-                }
-                
-                imageToCrop.src = event.target.result;
-                imageUploadArea.style.display = 'none';
-                croppedImagePreview.style.display = 'none';
-                changePhotoButton.style.display = 'none';
-                imageCropperContainer.style.display = 'block';
-                console.log('Container cropper ditampilkan.');
-
-                cropper = new Cropper(imageToCrop, {
-                    aspectRatio: 4 / 6,
-                    viewMode: 1,
-                    autoCropArea: 0.8,
-                    responsive: true,
-                    background: false,
-                    ready() {
-                        console.log('Cropper is ready.');
-                    },
-                    error(err) {
-                        console.error('Cropper error:', err);
-                    }
-                });
-            };
-            reader.onerror = (error) => {
-                console.error('FileReader error:', error);
-                alert('Gagal membaca file gambar.');
-            };
-            reader.readAsDataURL(file);
-        } else {
-            alert('Jenis file tidak didukung. Mohon unggah gambar JPEG atau PNG.');
-            fotoCoverInput.value = '';
-            console.warn('Jenis file tidak didukung:', file ? file.type : 'No file');
-        }
-    }
-
-    cropButton.addEventListener('click', () => {
-        console.log('Tombol Potong Foto diklik.');
-        if (cropper) {
-            const croppedCanvas = cropper.getCroppedCanvas({
-                width: 400,
-                height: 600,
-                imageSmoothingQuality: 'high',
-            });
-
-            finalCroppedImage.src = croppedCanvas.toDataURL('image/png');
-            finalCroppedImage.style.display = 'block';
-            croppedImagePreview.style.display = 'flex';
-            imageCropperContainer.style.display = 'none';
-            changePhotoButton.style.display = 'block';
-            console.log('Gambar berhasil di-crop dan ditampilkan pratinjau.');
-
-            croppedCanvas.toBlob((blob) => {
-                croppedBlob = blob;
-                console.log('Cropped image converted to Blob. Size:', blob.size, 'bytes');
-            }, 'image/png', 0.9);
-
-            cropper.destroy();
-            console.log('Cropper instance dihancurkan setelah cropping.');
-        } else {
-            console.warn('Cropper tidak aktif saat tombol potong diklik.');
-            alert('Tidak ada gambar untuk dipotong.');
-        }
-    });
-
-    changePhotoButton.addEventListener('click', () => {
-        console.log('Tombol Ubah Foto diklik.');
-        resetImageUploadArea();
-    });
-
-    // === Fungsionalitas Otomatisasi Input Formulir ===
-    noWhatsappInput.addEventListener('input', function() {
-        let value = this.value;
-        if (value.length > 0 && !value.startsWith('62')) {
-            this.value = '62' + value.replace(/^0+/, ''); 
-        } else if (value.length === 0) {
-            this.value = ''; 
-        }
-    });
-
-    namaLengkapInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
-
-    namaSulthonInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
-
-
-    // === Penanganan Submit Formulir ===
-    registrationForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        submitButton.disabled = true;
-        submitButton.textContent = 'Memproses...';
-        loadingMessage.style.display = 'block'; // Tampilkan pesan loading
-        console.log('Formulir disubmit. Tombol dinonaktifkan, pesan loading ditampilkan.');
-
-        const namaLengkap = namaLengkapInput.value;
-        const namaSulthon = namaSulthonInput.value;
-        const noWhatsapp = noWhatsappInput.value;
-        const majlisWilayah = majlisWilayahSelect.value;
-        
-        if (!croppedBlob) {
-            alert('Mohon unggah dan potong foto terlebih dahulu.');
-            console.warn('Submit dibatalkan: Foto belum di-crop.');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Daftar Sekarang';
-            loadingMessage.style.display = 'none'; // Sembunyikan pesan loading
-            return;
-        }
-
-        if (!namaLengkap || !namaSulthon || !noWhatsapp || !majlisWilayah) {
-            alert('Mohon lengkapi semua data formulir.');
-            console.warn('Submit dibatalkan: Data formulir belum lengkap.');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Daftar Sekarang';
-            loadingMessage.style.display = 'none'; // Sembunyikan pesan loading
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('namaLengkap', namaLengkap);
-        formData.append('namaSulthon', namaSulthon);
-        formData.append('noWhatsapp', noWhatsapp);
-        formData.append('majlisWilayah', majlisWilayah);
-        
-        const fileName = `${namaSulthon.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.png`;
-        formData.append('fotoCover', croppedBlob, fileName);
-        formData.append('fotoCoverFilename', fileName);
-        console.log('FormData disiapkan dengan file:', fileName);
-
-
-        const GOOGLE_APPS_SCRIPT_WEB_APP_URL = CONFIG.GOOGLE_APPS_SCRIPT_WEB_APP_URL; 
-
-        if (!GOOGLE_APPS_SCRIPT_WEB_APP_URL || GOOGLE_APPS_SCRIPT_WEB_APP_URL.trim() === '' || GOOGLE_APPS_SCRIPT_WEB_APP_URL.includes('YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE')) {
-            alert('Error Konfigurasi: URL Google Apps Script Web App belum diatur atau masih placeholder di script.js. Mohon periksa kembali.');
-            console.error('URL Apps Script tidak valid:', GOOGLE_APPS_SCRIPT_WEB_APP_URL);
-            submitButton.disabled = false;
-            submitButton.textContent = 'Daftar Sekarang';
-            loadingMessage.style.display = 'none'; // Sembunyikan pesan loading
-            return;
-        }
-        console.log('Mengirim data ke URL Apps Script:', GOOGLE_APPS_SCRIPT_WEB_APP_URL);
-
-        try {
-            const response = await fetch(GOOGLE_APPS_SCRIPT_WEB_APP_URL, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-            }
-
-            const result = await response.json();
-            console.log('Respons dari Apps Script:', result);
-
-            if (result.status === 'SUCCESS') {
-                showSuccessPopup('Registrasi Berhasil!', 'Data Anda telah berhasil disimpan.', true); // Tampilkan popup sukses dengan tombol WA
-                console.log('Pendaftaran BERHASIL.');
-            } else {
-                showSuccessPopup('Registrasi Gagal!', result.message || 'Terjadi kesalahan tidak dikenal saat pendaftaran.', false); // Tampilkan popup gagal tanpa tombol WA
-                console.error('Apps Script GAGAL:', result.message || 'Respons tidak diketahui.');
-            }
-        } catch (error) {
-            console.error('Error saat submit formulir:', error);
-            showSuccessPopup('Registrasi Gagal!', 'Terjadi kesalahan saat pendaftaran. Mohon coba lagi atau hubungi admin.', false); // Tampilkan popup gagal
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Daftar Sekarang';
-            loadingMessage.style.display = 'none'; // Sembunyikan pesan loading
-            console.log('Proses submit formulir selesai.');
-        }
-    });
+  });
 });
